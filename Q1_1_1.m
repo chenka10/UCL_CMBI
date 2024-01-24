@@ -6,16 +6,9 @@ qhat = load('bvecs');
 bvals = 1000*sum(qhat.*qhat);
 
 %%
+% his voxel 73,110,72
 
-% Middle slice of the 1st image volume, which has b=0
-imshow(flipud(squeeze(dwis(1,:,:,72))'), []);
-
-figure;
-% Middle slice of the 2nd image volume, which has b=1000
-imshow(flipud(squeeze(dwis(2,:,:,72))'), []);
-
-
-%%
+%% 
 selected_slice = 72;
 img_width = size(dwis,2);
 img_height = size(dwis,3);
@@ -50,19 +43,26 @@ for i=1:img_width
 end
 
 %%
-figure;
+figure('Position',[100 100 1000 300]);
+sgtitle(['Slice: ' num2str(selected_slice)])
+subplot(1,3,1)
 imshow(flipud(meanDiff_map'), []);
-
-%%
-figure;
+xticks([])
+yticks([])
+colorbar()
+title('Mean Diffusion')
+subplot(1,3,2)
 imshow(flipud(FA_map'), []);
-
-%%
-figure;
+xticks([])
+yticks([])
+colorbar()
+title('Fractional Anisotropy')
+subplot(1,3,3)
 imshow(flipud(permute(dir_map,[2,1,3])), []);
-%%
-figure;
-quiver3(flipud(permute(dir_map,[2,1,3])));
+xticks([])
+yticks([])
+colorbar()
+title('Directional Map')
 
 function Y = GetDesignMatrix(qhat,b)
     images_num = size(qhat,2);
