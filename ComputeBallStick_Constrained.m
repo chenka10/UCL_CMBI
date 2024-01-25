@@ -3,7 +3,7 @@ function S = ComputeBallStick_Constrained(x, bvals, qhat)
 S0 = x(1)^2;
 diff = x(2)^2;
 f = 1/(1+exp(-x(3)));
-theta = x(4);
+theta = tanh(x(4))+pi/2;
 phi = x(5);
 
 % Synthesize the signals according to the model
