@@ -1,6 +1,6 @@
 clear all; clc;
 
-%%
+%% load data
 load('data');
 dwis=double(dwis);
 dwis=permute(dwis,[4,1,2,3]);
@@ -8,16 +8,13 @@ dwis=permute(dwis,[4,1,2,3]);
 qhat = load('bvecs');
 bvals = 1000*sum(qhat.*qhat);
 
-%% load values for chosen voxel
+%% perform basic ball and stick fitting
 Avox = dwis(:,92,65,72);
 
-%% perform basic ball and stick fitting
 startx = [3.5e+00 3e-03 2.5e-01 pi/2 0];
 
-startx(1) = sqrt(startx(1));
-startx(2) = sqrt(startx(2));
-startx(3) = log(startx(3)/(1-startx(3)));
-startx(4) = tan(startx(4)-pi/2);
+% inverse stating params
+startx = GetOptimParamsFromRealParams(startx);
 
 h=optimset('MaxFunEvals',20000,...
  'Algorithm','quasi-newton',...

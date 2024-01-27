@@ -1,25 +1,29 @@
+%% loading data
 load('data');
+
 dwis=double(dwis);
 dwis=permute(dwis,[4,1,2,3]);
 
 qhat = load('bvecs');
 bvals = 1000*sum(qhat.*qhat);
 
-%%
-% his voxel 73,110,72
+%% generating maps
 
-%% 
+% params
 selected_slice = 72;
 img_width = size(dwis,2);
 img_height = size(dwis,3);
 
+% making empty maps
 meanDiff_map = zeros(img_width,img_height);
 FA_map = zeros(img_width,img_height);
 dir_map = zeros(img_width,img_height,3);
 
+% compute design matrix
 Y = GetDesignMatrix(qhat,bvals);
 Y_pinv = pinv(Y);
 
+% iterating on all voxels to fill maps
 for i=1:img_width
     for j=1:img_height
         if min(dwis(:,i,j,selected_slice))<=0
@@ -42,7 +46,11 @@ for i=1:img_width
     end
 end
 
-%%
+%% Display S0 slice
+figure;
+imshow(flipud(squeeze(dwis(1,:,:,72))'), []);
+
+%% Display Maps
 figure('Position',[100 100 1000 300]);
 sgtitle(['Slice: ' num2str(selected_slice)])
 subplot(1,3,1)

@@ -1,10 +1,6 @@
 function S = ComputeBallStick_Constrained(x, bvals, qhat)
 % Extract the parameters
-S0 = x(1)^2;
-diff = x(2)^2;
-f = 1/(1+exp(-x(3)));
-theta = tanh(x(4))+pi/2;
-phi = x(5);
+[S0,diff,f,theta,phi] = GetRealParamsFromOptimParams(x);
 
 % Synthesize the signals according to the model
 fibdir = [cos(phi)*sin(theta) sin(phi)*sin(theta) cos(theta)];

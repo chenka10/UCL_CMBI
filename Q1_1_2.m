@@ -1,6 +1,6 @@
 clear all; clc;
 
-%%
+%% load data
 load('data');
 dwis=double(dwis);
 dwis=permute(dwis,[4,1,2,3]);
@@ -8,10 +8,11 @@ dwis=permute(dwis,[4,1,2,3]);
 qhat = load('bvecs');
 bvals = 1000*sum(qhat.*qhat);
 
-%% load values for chosen voxel
+%% perform basic ball and stick fitting
+
+% load voxel values
 Avox = dwis(:,92,65,72);
 
-%% perform basic ball and stick fitting
 startx = [3.5e+00 3e-03 2.5e-01 0 0];
 
 h=optimset('MaxFunEvals',20000,...
