@@ -23,11 +23,16 @@ selected_j = 65;
 % selected_j = 100;
 
 
-% number of MCMC iterations
-N = 100000;
+% number of MCMC iterations (after stabilization!)
+N = 10000;
+
+% samples interval
+I = 100;
 
 % interval between storing iterations
 stabilization_iterations = 30000;
+
+N = N+stabilization_iterations;
 
 % we assume standard deviation of 200
 sigma = 200;
@@ -44,15 +49,15 @@ acceptangce_log = zeros(1,N);
 
 
 % setup random noise range to fit parameter values
-S0_range = 10;
-d_range = 0.001;
-f_range = 0.01;
-theta_range = 0.01;
-phi_range = 0.01;
+S0_range = 30;
+d_range = 0.00001;
+f_range = 0.003;
+theta_range = pi/100;
+phi_range = pi/100;
 noise_range = [S0_range, d_range, f_range, theta_range, phi_range];
 
 % setup starting params
-current_params = [3.5e3 3e-03 2.5e-01 0 0];
+current_params = [3.5e+3 3e-3 0.1 pi pi];
 
 current_model_signals = ComputeBallStick(current_params,bvals,qhat)';
 current_log_likelihood = ComputeLogLikelihood(sigma,Avox,current_model_signals);
@@ -88,19 +93,22 @@ for i=1:N
 end
 
 results = results(stabilization_iterations:end,:);
+acceptance_log_all = mean(acceptangce_log(stabilization_iterations:end));
 
 
 %% Display parameters
 
-param_names = {'S0','diff','f','theta','phi'};
+param_names = {'S0','diff','f'};
 
 figure('Position',[100 100 1400 200]);
 for i=1:numel(param_names)
     subplot(1,numel(param_names),i)
-    plot(1:(N-stabilization_iterations+1),results(:,i));
+    plot(results(:,i));
     title(param_names{i})
     xlabel('num. iterations')
 end
+
+disp(['min err: ' num2str(min(results(:,6)),2)]);
 
 
 %% Display Histograms
