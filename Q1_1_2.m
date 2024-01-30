@@ -13,7 +13,7 @@ bvals = 1000*sum(qhat.*qhat);
 % load voxel values
 Avox = dwis(:,92,65,72);
 
-startx = [3.5e+00 3e-03 2.5e-01 0 0];
+startx = [3.5e+00 3e-03 2.5e-01 pi/2 0];
 
 h=optimset('MaxFunEvals',20000,...
  'Algorithm','quasi-newton',...
