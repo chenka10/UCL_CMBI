@@ -1,25 +1,37 @@
-clear all; clc;
+%% clearing
 
-%%
-load('data');
-dwis=double(dwis);
-dwis=permute(dwis,[4,1,2,3]);
+clc; clear all; close all;
 
-qhat = load('bvecs');
-bvals = 1000*sum(qhat.*qhat);
+%% load data
+
+% Load the diffusion signal
+fid = fopen('isbi2015_data_normalised.txt', 'r', 'b');
+fgetl(fid); % Read in the header
+D = fscanf(fid, '%f', [6, inf])'; % Read in the data
+fclose(fid);
+% Select the first of the 6 voxels
+Avox = D(:,1);
+% Load the protocol
+fid = fopen('isbi2015_protocol.txt', 'r', 'b');
+fgetl(fid);
+A = fscanf(fid, '%f', [7, inf]);
+fclose(fid);
+% Create the protocol
+qhat = A(1:3,:);
+G = A(4,:);
+delta = A(5,:);
+smalldel = A(6,:);
+TE = A(7,:);
+GAMMA = 2.675987E8;
+bvals = ((GAMMA*smalldel.*G).^2).*(delta-smalldel/3);
+% convert bvals units from s/m^2 to s/mm^2
+bvals = bvals/10^6;
+
 
 %% perform basic ball and stick fitting
 
-% original voxel
-Avox = dwis(:,92,65,72);
-
-% tested voxels
-% Avox = dwis(:,28,61,72);
-% Avox = dwis(:,82,90,72);
-% Avox = dwis(:,55,100,72);
-
 % number of perturbations
-N = 1000;
+N = 10;
 
 startx = [3.5e+00 3e-03 2.5e-01 pi/2 0];
 
