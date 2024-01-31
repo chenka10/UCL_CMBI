@@ -36,12 +36,12 @@ N = 100;
 startx = [3.5e+00 3e-03 3e-03 2.5e-01 pi/2 0];
 
 % setup random noise range to fit parameter values
-S0_range = 10;
-lam1_range = 1;
-lam2_range = 1;
-f_range = 0.5;
-theta_range = pi/2;
-phi_range = pi;
+S0_range = 100;
+lam1_range = 100;
+lam2_range = 100;
+f_range = 5;
+theta_range = (pi/2)*10;
+phi_range = pi*10;
 noise_range = [S0_range, lam1_range, lam2_range, f_range, theta_range, phi_range];
 
 % perform N ball and stick fitting with random perturbations
