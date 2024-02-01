@@ -32,7 +32,7 @@ for i=1:145
             noise_range = [S0_range, d_range, f_range, theta_range, phi_range];
 
             % fit ball and stick using random perturbations
-            [starting_values,fitted_params,resnorms] = RandomBallStickFitting(startx,noise_range,Avox,qhat,bvals,N);
+            [starting_values,fitted_params,resnorms,~] = RandomBallStickFitting(startx,noise_range,Avox,qhat,bvals,N);
 
             % find minimal resnorm
             [min_resnorm, min_resnorm_index] = min(resnorms);            

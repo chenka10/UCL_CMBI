@@ -1,8 +1,9 @@
-function [starting_values,fitted_params, resnorms] = RandomBallStickFitting(startx_orig,noise_range,Avox,qhat,bvals,N)
+function [starting_values,fitted_params, resnorms, hessians] = RandomBallStickFitting(startx_orig,noise_range,Avox,qhat,bvals,N)
 
 starting_values = zeros(N,5);
 fitted_params = zeros(N,5);
 resnorms = zeros(N,1);
+hessians = cell(N,1);
 
 for i=1:N
     try
@@ -30,10 +31,11 @@ for i=1:N
             'TolFun',1e-10, ...
             'Display','none');
 
-        [parameter_hat,RESNORM,~,~]=fminunc('BallStickSSD_Constrained',startx,h,Avox,bvals,qhat);
+        [parameter_hat,RESNORM,~,~,~,hessian]=fminunc('BallStickSSD_Constrained',startx,h,Avox,bvals,qhat);
 
         fitted_params(i,:) = parameter_hat;
         resnorms(i) = RESNORM;
+        hessians{i} = hessian;
     catch
         resnorms(i) = inf;
     end
