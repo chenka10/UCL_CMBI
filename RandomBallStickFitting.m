@@ -15,8 +15,7 @@ for i=1:N
         % clip perturbed params
         startx(1) = abs(startx(1));
         startx(2) = abs(startx(2));
-        startx(3) = max(min(startx(3),1),0);
-        % startx(4) = max(min(startx(4),pi),0);
+        startx(3) = mod(startx(3),1);        
 
         % save start values
         starting_values(i,:) = startx;

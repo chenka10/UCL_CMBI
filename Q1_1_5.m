@@ -21,13 +21,13 @@ for i=1:145
             Avox = dwis(:,i,j,72);
 
             % perform basic ball and stick fitting
-            startx = [3.5e+00 3e-03 2.5e-01 pi/2 0];
+            startx = [3.5e+00 3e-03 2.5e-01 0 0];
 
-            % set random range for perturbations based on parameter values
-            S0_range = 3e3;
-            d_range = 0.1;
+            % setup random noise range to fit parameter values
+            S0_range = 5e3;
+            d_range = 10;
             f_range = 0.5;
-            theta_range = pi/2;
+            theta_range = pi;
             phi_range = pi;
             noise_range = [S0_range, d_range, f_range, theta_range, phi_range];
 
@@ -55,7 +55,7 @@ for i=1:145
 end
 
 %%
-save('results.mat','res_map');
+save('results_30_new.mat','res_map');
 
 %% Displaying maps
 figure('Position',[100 100 550 500]);
@@ -95,15 +95,15 @@ dir_vecs_y = (sin(thetas).*sin(phis)).*res_map(:,:,3);
 
 figure;
 subplot(1,3,1)
-quiver(1:145,1:174,(dir_vecs_x)',flipud(dir_vecs_y)');
+quiver(1:145,1:174,(dir_vecs_x)',flipud(dir_vecs_y)','ShowArrowHead','off');
 daspect([1 1 1])
 
 subplot(1,3,2)
-quiver(1:145,1:174,(dir_vecs_x)',flipud(dir_vecs_y)');
+quiver(1:145,1:174,(dir_vecs_x)',flipud(dir_vecs_y)','ShowArrowHead','off');
 daspect([1 1 1])
 
 subplot(1,3,3)
-quiver(1:145,1:174,(dir_vecs_x)',flipud(dir_vecs_y)');
+quiver(1:145,1:174,(dir_vecs_x)',flipud(dir_vecs_y)','ShowArrowHead','off');
 daspect([1 1 1])
 
 

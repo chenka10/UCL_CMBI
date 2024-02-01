@@ -64,8 +64,11 @@ parameter_hat = fitted_params(min_resnorm_index,:);
 model_res = ComputeBallStick_Constrained(parameter_hat,bvals,qhat);
 
 %% compare given values with model values
-figure;
+figure('Position',[100 100 1500 400]);
 plot(Avox, ' bs', 'MarkerSize', 6, 'LineWidth', 2);
 hold on;
 plot(model_res, ' rx', 'MarkerSize', 6, 'LineWidth', 2);
+xlabel('Sample num.')
+ylabel('Signal Value')
+title(['Zeppelin and Stick Match Plot; SSD=' num2str(min_resnorm)])
 legend('Data','Model')

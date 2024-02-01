@@ -33,7 +33,7 @@ bvals = bvals/10^6;
 % number of perturbations
 N = 100;
 
-startx = [3.5e+00 3e-03 2.5e-01 pi/2 0];
+startx = [3.5e+00 3e-03 2.5e-01 0 0];
 
 % setup random noise range to fit parameter values
 S0_range = 100;
@@ -64,8 +64,11 @@ parameter_hat = fitted_params(min_resnorm_index,:);
 model_res = ComputeBallStick_Constrained(parameter_hat,bvals,qhat);
 
 %% compare given values with model values
-figure;
+figure('Position',[100 100 1500 400]);
 plot(Avox, ' bs', 'MarkerSize', 6, 'LineWidth', 2);
 hold on;
 plot(model_res, ' rx', 'MarkerSize', 6, 'LineWidth', 2);
+xlabel('Sample num.')
+ylabel('Signal Value')
+title(['Zeppelin and Stick (Tortuosity) Match Plot; SSD=' num2str(min_resnorm)])
 legend('Data','Model')

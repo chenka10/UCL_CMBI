@@ -11,23 +11,23 @@ bvals = 1000*sum(qhat.*qhat);
 %% perform basic ball and stick fitting
 
 % original voxel
-Avox = dwis(:,92,65,72);
+% Avox = dwis(:,92,65,72);
 
 % tested voxels
 % Avox = dwis(:,28,61,72);
 % Avox = dwis(:,82,90,72);
-% Avox = dwis(:,55,100,72);
+Avox = dwis(:,55,100,72);
 
 % number of perturbations
 N = 1000;
 
-startx = [3.5e+00 3e-03 2.5e-01 pi/2 0];
+startx = [3.5e+00 3e-03 2.5e-01 0 0];
 
 % setup random noise range to fit parameter values
-S0_range = 3e3;
-d_range = 0.2;
+S0_range = 5e3;
+d_range = 10;
 f_range = 0.5;
-theta_range = pi/2;
+theta_range = pi;
 phi_range = pi;
 noise_range = [S0_range, d_range, f_range, theta_range, phi_range];
 
@@ -42,6 +42,7 @@ disp(['min SSD: ' num2str(min_resnorm) ', at iter: ' num2str(min_resnorm_index)]
 [S0,diff,f,theta,phi] = GetRealParamsFromOptimParams(fitted_params(min_resnorm_index,:));
 
 % store success rate
+
 success_rate = sum(abs(resnorms-min_resnorm)<1)/N;
 disp(['success rate: ' num2str(success_rate)]);
 

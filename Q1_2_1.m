@@ -11,16 +11,16 @@ bvals = 1000*sum(qhat.*qhat);
 %% perform basic ball and stick fitting
 
 selected_slice = 72;
-% selected_i = 92;
-% selected_j = 65;
+selected_i = 92;
+selected_j = 65;
 
 % other tested voxels
 % selected_i = 28;
 % selected_j = 61;
 % selected_i = 82;
 % selected_j = 90;
-selected_i = 55;
-selected_j = 100;
+% selected_i = 55;
+% selected_j = 100;
 
 
 % number of bootstrap iterations
@@ -48,11 +48,11 @@ for i=1:N
 
     startx = [3.5e+00 3e-03 2.5e-01 0 0];
 
-    % setup random noise range to fit parameter values
-    S0_range = 3e3;
-    d_range = 0.2;
+   % setup random noise range to fit parameter values
+    S0_range = 5e3;
+    d_range = 10;
     f_range = 0.5;
-    theta_range = pi/2;
+    theta_range = pi;
     phi_range = pi;
     noise_range = [S0_range, d_range, f_range, theta_range, phi_range];
 

@@ -51,14 +51,17 @@ disp(['min SSD: ' num2str(min_resnorm) ', at iter: ' num2str(min_resnorm_index)]
 success_rate = sum(abs(resnorms-min_resnorm)<1)/N;
 disp(['success rate: ' num2str(success_rate)]);
 
-%% compute voxel values based on basic model
 parameter_hat = fitted_params(min_resnorm_index,:);
 
-model_res = ComputeDti(parameter_hat,bvals,qhat);
+%% compute voxel values based on basic model
+model_res_DTI_optim = ComputeDti(parameter_hat,bvals,qhat);
 
 %% compare given values with model values
-figure;
+figure('Position',[100 100 1500 400]);
 plot(Avox, ' bs', 'MarkerSize', 6, 'LineWidth', 2);
 hold on;
-plot(model_res, ' rx', 'MarkerSize', 6, 'LineWidth', 2);
+plot(model_res_DTI_optim, ' rx', 'MarkerSize', 6, 'LineWidth', 2);
+xlabel('Sample num.')
+ylabel('Signal Value')
+title(['DTI Match Plot; SSD=' num2str(min_resnorm)])
 legend('Data','Model')

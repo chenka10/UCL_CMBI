@@ -24,7 +24,7 @@ selected_j = 65;
 
 
 % number of MCMC iterations (after stabilization!)
-N = 10000;
+N = 100000;
 
 % samples interval
 I = 100;
@@ -57,7 +57,7 @@ phi_range = pi/100;
 noise_range = [S0_range, d_range, f_range, theta_range, phi_range];
 
 % setup starting params
-current_params = [3.5e+3 3e-3 0.1 pi pi];
+current_params = [3.5e+00 3e-03 2.5e-01 0 0];
 
 current_model_signals = ComputeBallStick(current_params,bvals,qhat)';
 current_log_likelihood = ComputeLogLikelihood(sigma,Avox,current_model_signals);
@@ -92,7 +92,7 @@ for i=1:N
 
 end
 
-results = results(stabilization_iterations:end,:);
+results = results(stabilization_iterations:I:end,:);
 acceptance_log_all = mean(acceptangce_log(stabilization_iterations:end));
 
 
