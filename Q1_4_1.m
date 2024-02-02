@@ -60,6 +60,8 @@ D_optim = zeros(size(shells_idencies,1),1);
 E_optim = zeros(size(shells_idencies,1),1);
 T_optim = zeros(size(shells_idencies,1),1);
 
+eigenvalues = zeros(size(shells_idencies,1),3);
+
 
 for i=1:size(shells_idencies,1)
     curr_shell_idencies = shells_idencies(i,:);
@@ -70,11 +72,13 @@ for i=1:size(shells_idencies,1)
     A_optim(i)= trace(F_inv);
     D_optim(i) = det(F_inv);
 
-    eigenvalues = eig(F);
-    min_eigenvalue = min(eigenvalues);
+    curr_eigenvalues = eig(F);
+    min_eigenvalue = min(curr_eigenvalues);
     E_optim(i) = min_eigenvalue;
+    
+    eigenvalues(i,:) = curr_eigenvalues;
 
-    T_optim(i) = trace(F);
+    T_optim(i) = F(1,1);
 end
 
 [~,A_optim_val] = min(A_optim);
@@ -82,20 +86,34 @@ end
 [~,E_optim_val] = max(E_optim);
 [~,T_optim_val] = max(T_optim);
 
+%% plot optimality values
+
 figure;
-subplot(4,1,1)
+subplot(2,2,1)
 plot(A_optim);
 title({'trace(F^{-1}) - minimize for A-optimality',['min: ' num2str(A_optim_val)]});
-subplot(4,1,2)
+subplot(2,2,2)
 plot(D_optim);
 title({'det(F^{-1}) - minimize for D-optimality',['min: ' num2str(D_optim_val)]});
-subplot(4,1,3)
+subplot(2,2,3)
 plot(E_optim);
 title({'min eigenvalue of F - maximize for E-optimality',['max: ' num2str(E_optim_val)]});
-subplot(4,1,4)
+subplot(2,2,4)
 plot(T_optim);
 title({'trace(F) - maximiaze for T-optimality',['max: ' num2str(T_optim_val)]});
 
+%% plot eigenvalues progression
+
+figure;
+subplot(3,1,1)
+plot(eigenvalues(:,1));
+title('F first eigenvalue')
+subplot(3,1,2)
+plot(eigenvalues(:,2));
+title('F second eigenvalue')
+subplot(3,1,3)
+plot(eigenvalues(:,3));
+title('F third eigenvalue')
 
 %% Fisher matrix computation
 
