@@ -46,11 +46,14 @@ end
 %% Compute Fisher matrix for Ball and Stick on all data
 
 params = [1.009865516767256   0.001432055891641   0.574928310559141  -1.544730918822476   6.200322564900709];
+params_norm = params(1:3)'*params(1:3);
 
-F = ComputeFisherMatrix(params,bvals,qhat);
+F = ComputeFisherMatrix(params,bvals,qhat)*params_norm;
+
 
 %% Find optimal shell
 params = [1.009865516767256   0.001432055891641   0.574928310559141  -1.544730918822476   6.200322564900709];
+params_norm = params(1:3)'*params(1:3);
 
 A_optim = zeros(size(shells_idencies,1),1);
 D_optim = zeros(size(shells_idencies,1),1);
@@ -62,17 +65,36 @@ for i=1:size(shells_idencies,1)
     curr_shell_idencies = shells_idencies(i,:);
     curr_bvals = bvals(curr_shell_idencies);
     curr_qhat = qhat(curr_shell_idencies);
-    F = ComputeFisherMatrix(params,curr_bvals,curr_qhat);
+    F = ComputeFisherMatrix(params,curr_bvals,curr_qhat).*params_norm;
     F_inv = pinv(F);
-    A_optim(i)=trace(F_inv);
+    A_optim(i)= trace(F_inv);
     D_optim(i) = det(F_inv);
-    T_optim(i) = trace(F);
 
     eigenvalues = eig(F);
     min_eigenvalue = min(eigenvalues);
     E_optim(i) = min_eigenvalue;
 
+    T_optim(i) = trace(F);
 end
+
+[~,A_optim_val] = min(A_optim);
+[~,D_optim_val] = min(D_optim);
+[~,E_optim_val] = max(E_optim);
+[~,T_optim_val] = max(T_optim);
+
+figure;
+subplot(4,1,1)
+plot(A_optim);
+title({'trace(F^{-1}) - minimize for A-optimality',['min: ' num2str(A_optim_val)]});
+subplot(4,1,2)
+plot(D_optim);
+title({'det(F^{-1}) - minimize for D-optimality',['min: ' num2str(D_optim_val)]});
+subplot(4,1,3)
+plot(E_optim);
+title({'min eigenvalue of F - maximize for E-optimality',['max: ' num2str(E_optim_val)]});
+subplot(4,1,4)
+plot(T_optim);
+title({'trace(F) - maximiaze for T-optimality',['max: ' num2str(T_optim_val)]});
 
 
 %% Fisher matrix computation
