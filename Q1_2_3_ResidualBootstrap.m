@@ -38,9 +38,9 @@ disp(['min SSD: ' num2str(min_resnorm) ', at iter: ' num2str(min_resnorm_index)]
 parameter_hat = fitted_params(min_resnorm_index,:);
 [S0,diff,f,theta,phi] = GetRealParamsFromOptimParams(parameter_hat);
 
-model_res = ComputeBallStick_Constrained(parameter_hat,bvals,qhat);
+model_res = ComputeBallStick_Constrained(parameter_hat,bvals,qhat)';
 
-residuals = Avox - model_res';
+residuals = Avox - model_res;
 
 
 %% perform basic ball and stick fitting
@@ -61,8 +61,9 @@ std_results = zeros(N,3);
 
 
 for i=1:N
-    
-    Avox_sample = Avox + residuals.*randn(size(residuals));
+
+    sample_indices = ceil(rand(1,data_size)*data_size);
+    Avox_sample = model_res + residuals(sample_indices);
     
     startx = [3.5e+00 3e-03 2.5e-01 0 0];
 
@@ -94,7 +95,7 @@ format short;
 param_names = {'S0','diff','f'};
 
 figure('Position',[10 10 1500 300]);
-sgtitle(['Wild bootstrap results for voxel: [' num2str(selected_i) ', ' num2str(selected_j) ', ' num2str(selected_slice) ']'])
+sgtitle(['Residuals bootstrap results for voxel: [' num2str(selected_i) ', ' num2str(selected_j) ', ' num2str(selected_slice) ']'])
 for i=1:3
     
     sigma = std(results(:,i));

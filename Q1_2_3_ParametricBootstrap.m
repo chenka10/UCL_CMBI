@@ -38,9 +38,14 @@ disp(['min SSD: ' num2str(min_resnorm) ', at iter: ' num2str(min_resnorm_index)]
 parameter_hat = fitted_params(min_resnorm_index,:);
 [S0,diff,f,theta,phi] = GetRealParamsFromOptimParams(parameter_hat);
 
-model_res = ComputeBallStick_Constrained(parameter_hat,bvals,qhat);
+model_res = ComputeBallStick_Constrained(parameter_hat,bvals,qhat)';
 
-residuals = Avox - model_res';
+residuals = Avox - model_res;
+
+% estimate sigma residuals
+K = 108;
+N = 5;
+sigma_residuals = sqrt(sum(residuals.^2)/(K-N));
 
 
 %% perform basic ball and stick fitting
@@ -61,9 +66,8 @@ std_results = zeros(N,3);
 
 
 for i=1:N
-
-    sample_indices = ceil(rand(1,data_size)*data_size);
-    Avox_sample = Avox + residuals(sample_indices);
+    
+    Avox_sample = model_res + randn(size(model_res))*sigma_residuals;
     
     startx = [3.5e+00 3e-03 2.5e-01 0 0];
 
