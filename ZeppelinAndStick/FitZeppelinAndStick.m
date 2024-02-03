@@ -19,7 +19,7 @@ noise_range = [S0_range, lam1_range, lam2_range, f_range, theta_range, phi_range
 
 % store min resnorm
 [min_resnorm, min_resnorm_index] = min(resnorms);
-disp(['min SSD: ' num2str(min_resnorm) ', at iter: ' num2str(min_resnorm_index)]);
+% disp(['min SSD: ' num2str(min_resnorm) ', at iter: ' num2str(min_resnorm_index)]);
 
 % store params for best fit
 optim_params = fitted_params(min_resnorm_index,:);
@@ -27,5 +27,5 @@ real_params = GetRealParamsFromOptimParams_ZeppelinStick(fitted_params(min_resno
 
 % store success rate
 success_rate = sum(abs(resnorms-min_resnorm)<1)/N;
-disp(['success rate: ' num2str(success_rate)]);
+% disp(['success rate: ' num2str(success_rate)]);
 end

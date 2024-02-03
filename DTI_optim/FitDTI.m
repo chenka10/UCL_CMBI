@@ -1,7 +1,7 @@
 function [real_params, optim_params, success_rate, min_resnorm] = FitDTI(Avox,qhat,bvals)
 
 % number of perturbations
-N = 100;
+N = 20;
 
 startx = [3.5e+00 0 0 0 0 0 0];
 
@@ -15,11 +15,11 @@ noise_range = [S0_range, tensor_range,tensor_range,tensor_range,tensor_range,ten
 
 % store min resnorm
 [min_resnorm, min_resnorm_index] = min(resnorms);
-disp(['min SSD: ' num2str(min_resnorm) ', at iter: ' num2str(min_resnorm_index)]);
+% disp(['min SSD: ' num2str(min_resnorm) ', at iter: ' num2str(min_resnorm_index)]);
 
 % store success rate
 success_rate = sum(abs(resnorms-min_resnorm)<1)/N;
-disp(['success rate: ' num2str(success_rate)]);
+% disp(['success rate: ' num2str(success_rate)]);
 
 real_params = fitted_params(min_resnorm_index,:);
 optim_params = real_params;
