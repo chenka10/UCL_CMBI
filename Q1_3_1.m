@@ -1,5 +1,5 @@
 %% clearing
-
+addpath("BallAndStick\");
 clc; clear all; close all;
 
 %% load data
@@ -27,40 +27,11 @@ bvals = ((GAMMA*smalldel.*G).^2).*(delta-smalldel/3);
 % convert bvals units from s/m^2 to s/mm^2
 bvals = bvals/10^6;
 
+%%
+[real_params, optim_params, success_rate, min_resnorm] = FitBallAndStick(Avox,qhat,bvals);
 
-%% perform basic ball and stick fitting
-
-% number of perturbations
-N = 100;
-
-startx = [3.5e+00 3e-03 2.5e-01 0 0];
-
-% setup random noise range to fit parameter values
-S0_range = 10;
-d_range = 10;
-f_range = 0.5;
-theta_range = pi;
-phi_range = pi;
-noise_range = [S0_range, d_range, f_range, theta_range, phi_range];
-
-% perform N ball and stick fitting with random perturbations
-[starting_values,fitted_params,resnorms,~] = RandomBallStickFitting(startx,noise_range,Avox,qhat,bvals,N);
-
-% store min resnorm
-[min_resnorm, min_resnorm_index] = min(resnorms);
-disp(['min SSD: ' num2str(min_resnorm) ', at iter: ' num2str(min_resnorm_index)]);
-
-% store params for best fit
-[S0,diff,f,theta,phi] = GetRealParamsFromOptimParams(fitted_params(min_resnorm_index,:));
-
-% store success rate
-success_rate = sum(abs(resnorms-min_resnorm)<0.001)/N;
-disp(['success rate: ' num2str(success_rate,5)]);
-
-%% compute voxel values based on basic model
-parameter_hat = fitted_params(min_resnorm_index,:);
-
-model_res = ComputeBallStick_Constrained(parameter_hat,bvals,qhat);
+model_res = ComputeBallStick(real_params,bvals,qhat)';
+SSD = sum((model_res-Avox).^2);
 
 %% compare given values with model values
 figure;
