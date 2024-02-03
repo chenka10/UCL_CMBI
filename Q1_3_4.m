@@ -5,22 +5,23 @@ addpath("DTI_optim\");
 addpath("ZeppelinAndStick\");
 addpath("ZeppelinAndStickTortuosity\");
 addpath("ZeppelinStickDot\");
+addpath("ZeppelinTwoSticks\");
 
 %% load data
 [Avox,qhat,TE,bvals] = LoadISBI2015Data(1);
 
 %%
-N = 4;
+N = 5;
 
-names = {'DTI','Ball And Stick','Zeppelin And Stick', 'Zeppelin Stick Dot'};
-fit_funcs = {@FitDTI,@FitBallAndStick,@FitZeppelinAndStick,@FitZeppelinStickDot};
-compute_funcs = {@ComputeDti,@ComputeBallStick,@ComputeZeppelinStick,@ComputeZeppelinStickDot};
+names = {'DTI','Ball And Stick','Zeppelin And Stick', 'Zeppelin Stick Dot','Zeppelin Two Sticks'};
+fit_funcs = {@FitDTI,@FitBallAndStick,@FitZeppelinAndStick,@FitZeppelinStickDot,@FitZeppelinTwoSticks};
+compute_funcs = {@ComputeDti,@ComputeBallStick,@ComputeZeppelinStick,@ComputeZeppelinStickDot,@ComputeZeppelinTwoSticks};
 params = cell(N,1);
 resnorms = zeros(N,1);
 models_res = cell(N,1);
 
 %% fit models
-for i=1:N
+for i=1:N  
     fit_func = fit_funcs{i};
     [real_params, optim_params, success_rate, min_resnorm] = fit_func(Avox,qhat,bvals);
     params{i} = real_params;
