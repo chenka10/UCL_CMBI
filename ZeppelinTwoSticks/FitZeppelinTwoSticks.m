@@ -1,7 +1,7 @@
 function [real_params, optim_params, success_rate, min_resnorm] = FitZeppelinTwoSticks(Avox,qhat,bvals)
 
 % number of perturbations
-N = 50;
+N = 100;
 
 startx = [3.5e+00 3e-03 3e-03 2.5e-01 2.5e-01 pi/2 0 pi/2 0 pi/2 0];
 

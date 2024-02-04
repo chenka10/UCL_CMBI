@@ -4,6 +4,7 @@ addpath("BallAndStick\");
 addpath("DTI_optim\");
 addpath("ZeppelinAndStick\");
 addpath("ZeppelinAndStickTortuosity\");
+addpath("TensorStickDot\");
 
 %% load data
 [Avox,qhat,TE,bvals] = LoadISBI2015Data(1);
