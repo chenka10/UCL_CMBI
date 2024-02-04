@@ -14,86 +14,24 @@ selected_slice = 72;
 selected_i = 92;
 selected_j = 65;
 
-% other tested voxels
-% selected_i = 28;
-% selected_j = 61;
-% selected_i = 82;
-% selected_j = 90;
-% selected_i = 55;
-% selected_j = 100;
-
-
-% number of MCMC iterations (after stabilization!)
-N = 100000;
-
-% samples interval
-I = 100;
-
-% interval between storing iterations
-stabilization_iterations = 30000;
-
-N = N+stabilization_iterations;
-
-% we assume standard deviation of 200
-sigma = 200;
 
 Avox = dwis(:,selected_i,selected_j,selected_slice);
 
-% number of data samples
-data_size = size(Avox,1);
 
-results = zeros(N,6);
+Y = GetDesignMatrix(qhat,bvals);
+Y_pinv = pinv(Y);
 
-% acceptance_log
-acceptangce_log = zeros(1,N);
+N=10000;
+stabilization = 500;
+I = 10;
 
+% MCMC(Avox,qhat,bvals,Y_pinv,N)
+tic
+[results,acceptance_count]=MCMC(Avox,qhat,bvals,Y_pinv,N,stabilization);
+toc
 
-% setup random noise range to fit parameter values
-S0_range = 30;
-d_range = 0.00001;
-f_range = 0.003;
-theta_range = pi/100;
-phi_range = pi/100;
-noise_range = [S0_range, d_range, f_range, theta_range, phi_range];
+results = results(stabilization:I:N,:);
 
-% setup starting params
-current_params = [3.5e+00 3e-03 2.5e-01 0 0];
-
-current_model_signals = ComputeBallStick(current_params,bvals,qhat)';
-current_log_likelihood = ComputeLogLikelihood(sigma,Avox,current_model_signals);
-
-for i=1:N
-
-    % perturbe params
-    noise = randn(1,5).*noise_range;
-    params = current_params + noise;
-
-    % limit perturbed params
-    params(1) = abs(params(1));
-    params(2) = abs(params(2));
-    params(3) = mod(params(3),1);
-
-    current_model_signals = ComputeBallStick(params,bvals,qhat)';
-
-    resnorm = sum((Avox - current_model_signals).^2);
-    log_likelihood = ComputeLogLikelihood(sigma,Avox,current_model_signals);
-
-    if (exp(log_likelihood-current_log_likelihood) > rand())
-        current_params = params;
-        current_log_likelihood = log_likelihood;
-        acceptangce_log(i) = 1;        
-    end
-    
-    results(i,:) = [current_params,resnorm];
-
-    if mod(i,10000)==0
-        disp([num2str(i) '/' num2str(N)])
-    end
-
-end
-
-results = results(stabilization_iterations:I:end,:);
-acceptance_log_all = mean(acceptangce_log(stabilization_iterations:end));
 
 
 %% Display parameters
@@ -152,8 +90,7 @@ hold on;
 plot(model_res, ' rx', 'MarkerSize', 6, 'LineWidth', 2);
 legend('Data','Model')
 
-function results = MCMC(Avox,qhat,bvals,Y_pinv,N,I)
-
+function [results,acceptance_count] = MCMC(Avox,qhat,bvals,Y_pinv,N,stabilization_iterations)
 
 x = Y_pinv*log(Avox);
 
@@ -163,9 +100,6 @@ S0_DTI = exp(x(1));
 R = D_DTI/trace(D_DTI);
 FA_DTI = sqrt(0.5*(3-1/trace(R^2)));
 
-% interval between storing iterations
-stabilization_iterations = 1000;
-
 N = N+stabilization_iterations;
 
 % we assume standard deviation of 200
@@ -174,7 +108,7 @@ sigma = 200;
 results = zeros(N,6);
 
 % acceptance_log
-acceptangce_log = zeros(1,N);
+acceptance_count = 0;
 
 % setup random noise range to fit parameter values
 S0_range = 30;
@@ -185,7 +119,7 @@ phi_range = pi/100;
 noise_range = [S0_range, d_range, f_range, theta_range, phi_range];
 
 % setup starting params
-current_params = [S0_DTI D_DTI FA_DTI 0 0];
+current_params = [S0_DTI trace(D_DTI)/3 FA_DTI 0 0];
 
 current_model_signals = ComputeBallStick(current_params,bvals,qhat)';
 current_log_likelihood = ComputeLogLikelihood(sigma,Avox,current_model_signals);
@@ -209,9 +143,11 @@ for i=1:N
     if (exp(log_likelihood-current_log_likelihood) > rand())
         current_params = params;
         current_log_likelihood = log_likelihood;
-        acceptangce_log(i) = 1;        
+        if (i<stabilization_iterations)
+            acceptance_count = acceptance_count + 1;
+        end
     end
-    
+
     results(i,:) = [current_params,resnorm];
 
     if mod(i,10000)==0
@@ -219,8 +155,4 @@ for i=1:N
     end
 
 end
-
-results = results(stabilization_iterations:I:end,:);
-acceptance_log_all = mean(acceptangce_log(stabilization_iterations:end));
-
 end

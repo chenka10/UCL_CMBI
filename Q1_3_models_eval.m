@@ -9,7 +9,7 @@ addpath("ZeppelinTwoSticks\");
 addpath("TensorStickDot\");
 
 %% load ISBI2015 data
-selected_voxel = 1;
+selected_voxel = 4;
 [Avox,qhat,TE,bvals] = LoadISBI2015Data(selected_voxel);
 
 %% setting names and functions for each model

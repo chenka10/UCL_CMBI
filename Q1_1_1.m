@@ -4,6 +4,10 @@ load('data');
 dwis=double(dwis);
 dwis=permute(dwis,[4,1,2,3]);
 
+dwis = dwis(:,:,:,72);
+
+%%
+
 qhat = load('bvecs');
 bvals = 1000*sum(qhat.*qhat);
 

@@ -9,94 +9,57 @@ qhat = load('bvecs');
 bvals = 1000*sum(qhat.*qhat);
 
 %% perform basic ball and stick fitting
-downsample_rate = 2;
+downsample_rate = 1;
 min_dwis = dwis(:,1:downsample_rate:145,1:downsample_rate:174,:);
 
 size(min_dwis)
 %%
 figure;
-imshow(flipud(squeeze(min_dwis(1,:,:,72))'), []);
+imshow(flipud(squeeze(min_dwis(1,:,:,72)>2000)'), []);
 
 
 %%
+fprintf('voxel num = %d\n',sum(min_dwis(1,:,:,72)>2000,'all'))
 
-% number of MCMC iterations (after stabilization!)
-N = 10000;
-
-% samples interval
+N=10000;
+stabilization = 500;
 I = 10;
 
-N_results = N/I;
-
-% interval between storing iterations
-stabilization_iterations = 15000;
-
-N = N+stabilization_iterations;
-
-% we assume standard deviation of 200
-sigma = 200;
-
-% computing sizes
 size_x = size(min_dwis,2);
 size_y = size(min_dwis,3);
 
-results = zeros(size_x,size_y,N,6);
+results = zeros(size_x,size_y,N+stabilization,6);
+acceptance_counts = zeros(size_x,size_y);
 
 % acceptance_log
 acceptangce_count = zeros(size_x,size_y);
 
+Y = GetDesignMatrix(qhat,bvals);
+Y_pinv = pinv(Y);
 
 selected_slice = 72;
 for selected_i=1:size_x
-    for selected_j=1:size_y
-        tic();
+    for selected_j=1:size_y        
 
         Avox = min_dwis(:,selected_i,selected_j,selected_slice);
 
-        % number of data samples
-        data_size = size(Avox,1);
-
-        % setup random noise range to fit parameter values
-        S0_range = 30;
-        d_range = 0.00001;
-        f_range = 0.003;
-        theta_range = pi/100;
-        phi_range = pi/100;
-        noise_range = [S0_range, d_range, f_range, theta_range, phi_range];
-
-        % setup starting params
-        current_params = [3.5e+00 3e-03 2.5e-01 0 0];
-
-        current_model_signals = ComputeBallStick(current_params,bvals,qhat)';
-        current_log_likelihood = ComputeLogLikelihood(sigma,Avox,current_model_signals);
-
-        for i=1:N
-
-            % perturbe params
-            noise = randn(1,5).*noise_range;
-            params = current_params + noise;
-
-            % limit perturbed params
-            params(1) = abs(params(1));
-            params(2) = abs(params(2));
-            params(3) = mod(params(3),1);
-
-            current_model_signals = ComputeBallStick(params,bvals,qhat)';
-
-            resnorm = sum((Avox - current_model_signals).^2);
-            log_likelihood = ComputeLogLikelihood(sigma,Avox,current_model_signals);
-
-            if (exp(log_likelihood-current_log_likelihood) > rand())
-                current_params = params;
-                current_log_likelihood = log_likelihood;
-                acceptangce_count(selected_i,selected_j) = acceptangce_count(selected_i,selected_j) + 1;
-            end
-
-            results(selected_i,selected_j,i,:) = [current_params,resnorm];            
+        if Avox(1)<2000
+            continue
         end
-        toc()
-        fprintf('i=%d,j=%d\n',selected_i,selected_j);
-    end    
+        
+        Y = GetDesignMatrix(qhat,bvals);
+        Y_pinv = pinv(Y);
+
+        % MCMC(Avox,qhat,bvals,Y_pinv,N)
+        tic
+        [curr_results,acceptance_count]=MCMC(Avox,qhat,bvals,Y_pinv,N,stabilization);
+        toc
+
+        results(selected_i,selected_j,:,:) = curr_results;
+        acceptance_counts(selected_i,selected_j) = acceptance_count;
+
+        fprintf('i=%d, j=%d\n',selected_i,selected_j);
+    end
 end
 
 %% Display parameters
@@ -106,7 +69,7 @@ param_names = {'S0','diff','f'};
 figure('Position',[100 100 1400 200]);
 for i=1:numel(param_names)
     subplot(1,numel(param_names),i)
-    plot(results(:,i));
+    plot(squeeze(results(92,65,:,i)));
     title(param_names{i})
     xlabel('num. iterations')
 end
