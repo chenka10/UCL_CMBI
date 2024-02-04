@@ -1,31 +1,9 @@
 %% clearing
-
 clc; clear all; close all;
 
-%% load data
-
-% Load the diffusion signal
-fid = fopen('isbi2015_data_normalised.txt', 'r', 'b');
-fgetl(fid); % Read in the header
-D = fscanf(fid, '%f', [6, inf])'; % Read in the data
-fclose(fid);
-% Select the first of the 6 voxels
-Avox = D(:,1);
-% Load the protocol
-fid = fopen('isbi2015_protocol.txt', 'r', 'b');
-fgetl(fid);
-A = fscanf(fid, '%f', [7, inf]);
-fclose(fid);
-% Create the protocol
-qhat = A(1:3,:);
-G = A(4,:);
-delta = A(5,:);
-smalldel = A(6,:);
-TE = A(7,:);
-GAMMA = 2.675987E8;
-bvals = ((GAMMA*smalldel.*G).^2).*(delta-smalldel/3);
-% convert bvals units from s/m^2 to s/mm^2
-bvals = bvals/10^6;
+%% load ISBI2015 data
+selected_voxel = 1;
+[Avox,qhat,TE,bvals] = LoadISBI2015Data(selected_voxel);
 
 %% compute shells
 shells_idencies = zeros(36,121);
@@ -45,10 +23,11 @@ end
 
 %% Compute Fisher matrix for Ball and Stick on all data
 
-params = [1.009865516767256   0.001432055891641   0.574928310559141  -1.544730918822476   6.200322564900709];
+params = [1.009865516767256   0.001432055891641   0.574928310559141  1.59686173476731723846   6.200322564900709];
 params_norm = params(1:3)'*params(1:3);
 
-F = ComputeFisherMatrix(params,bvals,qhat)*params_norm;
+F = ComputeFisherMatrix(params,bvals,qhat).*params_norm;
+
 
 
 %% Find optimal shell
@@ -88,18 +67,22 @@ end
 
 %% plot optimality values
 
-figure;
+figure('Position',[100 100 1000 700]);
 subplot(2,2,1)
 plot(A_optim);
+xlabel('shell number')
 title({'trace(F^{-1}) - minimize for A-optimality',['min: ' num2str(A_optim_val)]});
 subplot(2,2,2)
 plot(D_optim);
+xlabel('shell number')
 title({'det(F^{-1}) - minimize for D-optimality',['min: ' num2str(D_optim_val)]});
 subplot(2,2,3)
 plot(E_optim);
+xlabel('shell number')
 title({'min eigenvalue of F - maximize for E-optimality',['max: ' num2str(E_optim_val)]});
 subplot(2,2,4)
 plot(T_optim);
+xlabel('shell number')
 title({'trace(F) - maximiaze for T-optimality',['max: ' num2str(T_optim_val)]});
 
 %% plot eigenvalues progression
@@ -107,13 +90,19 @@ title({'trace(F) - maximiaze for T-optimality',['max: ' num2str(T_optim_val)]});
 figure;
 subplot(3,1,1)
 plot(eigenvalues(:,1));
-title('F first eigenvalue')
+[~,optim_val] = max(eigenvalues(:,1));
+xlabel('shell number')
+title({'F first eigenvalue',['max: ' num2str(optim_val)]})
 subplot(3,1,2)
 plot(eigenvalues(:,2));
-title('F second eigenvalue')
+[~,optim_val] = max(eigenvalues(:,2));
+xlabel('shell number')
+title({'F second eigenvalue',['max: ' num2str(optim_val)]})
 subplot(3,1,3)
 plot(eigenvalues(:,3));
-title('F third eigenvalue')
+[~,optim_val] = max(eigenvalues(:,3));
+xlabel('shell number')
+title({'F third eigenvalue',['max: ' num2str(optim_val)]})
 
 %% Fisher matrix computation
 

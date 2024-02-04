@@ -1,7 +1,7 @@
 function [real_params, optim_params, success_rate, min_resnorm] = FitZeppelinAndStickTortuosity(Avox,qhat,bvals)
 
 % number of perturbations
-N = 20;
+N = 50;
 
 startx = [3.5e+00 3e-03 2.5e-01 0 0];
 

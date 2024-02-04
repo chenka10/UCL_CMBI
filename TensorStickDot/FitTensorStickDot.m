@@ -1,16 +1,16 @@
 function [real_params, optim_params, success_rate, min_resnorm] = FitTensorStickDot(Avox,qhat,bvals)
 
 % number of perturbations
-N = 150;
+N = 20;
 
-startx = [3.5e+00 3e-03 3e-03 3e-03 3e-03 2.5e-01 2.5e-01 0 0 0];
+startx = [3.5e-1 3e-03 3e-03 3e-03 3e-03 2.5e-01 2.5e-01 0 0 0];
 
 % setup random noise range to fit parameter values
-S0_range = 10;
-d_s_range = 10;
-d_p_range = 10;
-d_1_range = 10;
-d_2_range = 10;
+S0_range = 1;
+d_s_range = 1;
+d_p_range = 1;
+d_1_range = 1;
+d_2_range = 1;
 f1_range = 5;
 f2_range = 5;
 alpha_range = pi;
