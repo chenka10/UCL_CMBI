@@ -20,9 +20,9 @@ results = zeros(N,6);
 acceptance_count = 0;
 
 % setup random noise range to fit parameter values
-S0_range = 30;
-d_range = 0.0001;
-f_range = 0.003;
+S0_range = 100;
+d_range = 0.00001;
+f_range = 0.01;
 theta_range = pi/100;
 phi_range = pi/100;
 noise_range = [S0_range, d_range, f_range, theta_range, phi_range];
@@ -58,10 +58,5 @@ for i=1:N
     end
 
     results(i,:) = [current_params,resnorm];
-
-    if mod(i,10000)==0
-        disp([num2str(i) '/' num2str(N)])
-    end
-
 end
 end

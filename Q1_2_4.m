@@ -58,9 +58,29 @@ for selected_i=1:size_x
         results(selected_i,selected_j,:,:) = curr_results;
         acceptance_counts(selected_i,selected_j) = acceptance_count;
 
-        fprintf('i=%d, j=%d\n',selected_i,selected_j);
+        fprintf('i=%d, j=%d, acc =%d\n',selected_i,selected_j,acceptance_count/N);
     end
 end
+
+%% Display Uncertainty results
+
+param_names = {'S0','d','f'};
+ranges = [1 0.6 0.6];
+
+figure('Position',[100 100 800 800]);
+sgtitle('MCMC Uncertainty Results')
+for i=1:numel(param_names)
+    subplot(2,2,i)
+    img = flipud(squeeze(4*std(results(:,:,stabilization:I:(N+stabilization),i),0,3))');
+    imshow(img,[0 ranges(i)*max(img,[],'all')]);
+    title(['2\sigma range: ' param_names{i}])  
+    colorbar()
+end
+subplot(2,2,4)
+imshow(flipud(acceptance_counts'/N));
+colorbar()
+title('acceptance rate');
+
 
 %% Display parameters
 
