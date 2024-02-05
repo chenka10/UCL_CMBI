@@ -81,6 +81,90 @@ imshow(flipud(acceptance_counts'/N));
 colorbar()
 title('acceptance rate');
 
+%% process directional historgrams for display
+
+thetas = results(:,:,stabilization:I:(N+stabilization),4);
+phis = results(:,:,stabilization:I:(N+stabilization),5);
+
+thetas_mean = squeeze(mean(thetas,3));
+phis_mean = squeeze(mean(phis,3));
+
+thetas_res = thetas - thetas_mean;
+phis_res = phis - phis_mean;
+
+range_x = (1:145);
+range_y = (1:174);
+
+nbins = 7;
+
+phi_bins = zeros(size_x,size_y,nbins);
+phi_counts = zeros(size_x,size_y,nbins);
+
+for i=1:size_x
+    for j=1:size_y        
+        curr_phis_res = squeeze(phis_res(i,j,:));
+
+        if all(curr_phis_res==0)
+            continue
+        end
+        
+        [phis_res_binned,curr_phi_bins] = histcounts(curr_phis_res,nbins);
+
+        phi_bins(i,j,:) = (curr_phi_bins(1:nbins)+curr_phi_bins(2:(nbins+1)))/2;
+        phi_counts(i,j,:) = phis_res_binned;       
+
+        fprintf('%d,%d\n',i,j);
+    end
+end
+
+%% plot directional uncertainty
+
+centers = [size_x/2 size_y/2; 73 80; 33 96];
+window_sizes = [size_x/2 size_y/2; 10 12; 10 12];
+
+figure('Position',[100 100 1300 500]);
+sgtitle('Directional Uncertainty')
+phi_counts_reshaped = phi_counts.^0.3;
+phi_counts_reshaped = phi_counts_reshaped./sum(phi_counts_reshaped,3);
+
+for fc=1:3
+    subplot(1,3,fc);
+
+    range_x = int32((centers(fc,1)-window_sizes(fc,1)+1):(centers(fc,1)+window_sizes(fc,1)));
+    range_y = int32((centers(fc,2)-window_sizes(fc,2)+1):(centers(fc,2)+window_sizes(fc,2)));
+
+    for bin=1:nbins
+        phi_counts_bin = squeeze(phi_counts_reshaped(range_x,range_y,bin));
+        phi_bins_bin = squeeze(phi_bins(range_x,range_y,bin));        
+
+        phis = phis_mean(range_x,range_y) + phi_bins_bin;
+
+        dir_vecs_x = (cos(phis)).*phi_counts_bin*0.5;
+        dir_vecs_y = (sin(phis)).*phi_counts_bin*0.5;
+
+        quiver(range_x,range_y,(dir_vecs_x)',(dir_vecs_y)','ShowArrowHead','off','Color','b');
+        hold on
+        quiver(range_x,range_y,(-dir_vecs_x)',(-dir_vecs_y)','ShowArrowHead','off','Color','b');
+        xlim([range_x(1) range_x(end)])
+        ylim([range_y(1) range_y(end)])
+    end
+    if fc==1
+        hold on;
+        rectangle('EdgeColor','g','LineWidth',2,'Position',[centers(2,1)+1-window_sizes(2,1) centers(2,2)+1-window_sizes(2,2) 2*window_sizes(2,1) 2*window_sizes(2,2)])
+        rectangle('EdgeColor','r','LineWidth',2,'Position',[centers(3,1)+1-window_sizes(3,1) centers(3,2)+1-window_sizes(3,2) 2*window_sizes(3,1) 2*window_sizes(3,2)])
+    end
+    if fc ==2
+        hold on;
+        rectangle('EdgeColor','g','LineWidth',2,'Position',[centers(2,1)+1-window_sizes(2,1) centers(2,2)+1-window_sizes(2,2) 2*window_sizes(2,1)-1 2*window_sizes(2,2)-1])
+    end
+    if fc ==3
+        hold on;
+        rectangle('EdgeColor','r','LineWidth',2,'Position',[centers(3,1)+1-window_sizes(3,1) centers(3,2)+1-window_sizes(3,2) 2*window_sizes(3,1)-1 2*window_sizes(3,2)-1])
+    end
+    daspect([1 1 1])
+end
+
+
 
 %% Display parameters
 
