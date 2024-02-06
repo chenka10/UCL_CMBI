@@ -124,7 +124,7 @@ window_sizes = [size_x/2 size_y/2; 12 14; 10 13];
 
 figure('Position',[100 100 1300 500]);
 sgtitle('Directional Uncertainty')
-phi_counts_reshaped = phi_counts.^0.3;
+phi_counts_reshaped = phi_counts.^0.5;
 phi_counts_reshaped = phi_counts_reshaped./sum(phi_counts_reshaped,3);
 
 for fc=1:3
@@ -139,12 +139,12 @@ for fc=1:3
 
         phis = phis_mean(range_x,range_y) + phi_bins_bin;
 
-        dir_vecs_x = (cos(phis)).*phi_counts_bin*0.5;
-        dir_vecs_y = (sin(phis)).*phi_counts_bin*0.5;
+        dir_vecs_x = (cos(phis).*sin(thetas_mean(range_x,range_y))).*phi_counts_bin*1.5;
+        dir_vecs_y = (sin(phis).*sin(thetas_mean(range_x,range_y))).*phi_counts_bin*1.5;
 
-        quiver(range_x,range_y,(dir_vecs_x)',(dir_vecs_y)','ShowArrowHead','off','Color','b');
+        quiver(range_x,range_y,(dir_vecs_x)',(dir_vecs_y)','off','ShowArrowHead','off','Color','b');
         hold on
-        quiver(range_x,range_y,(-dir_vecs_x)',(-dir_vecs_y)','ShowArrowHead','off','Color','b');
+        quiver(range_x,range_y,(-dir_vecs_x)',(-dir_vecs_y)','off','ShowArrowHead','off','Color','b');
         xlim([range_x(1) range_x(end)])
         ylim([range_y(1) range_y(end)])
     end

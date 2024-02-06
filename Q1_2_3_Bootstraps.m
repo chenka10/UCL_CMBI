@@ -1,5 +1,8 @@
 clear all; clc;
 
+%%
+addpath("Bootstraps\");
+
 %% load data
 load('data');
 dwis=double(dwis);
@@ -42,6 +45,11 @@ model_res = ComputeBallStick_Constrained(parameter_hat,bvals,qhat)';
 
 residuals = Avox - model_res;
 
+% estimate sigma residuals
+K = 108;
+N = 5;
+sigma_residuals = sqrt(sum(residuals.^2)/(K-N));
+
 
 %% perform basic ball and stick fitting
 
@@ -54,40 +62,30 @@ K = 30; % in section 1.1 we found that 10 get us 95% chances of finding the mini
 % number of data samples
 data_size = size(Avox,1);
 
-results = zeros(N,6);
+names = {'Classic','Parametric','Residual','Wild'};
 
-% stds of aggregated results of S0, diff and f
-std_results = zeros(N,3);
+results = cell(4,1);
+std_results = cell(4,1);
 
+[curr_results,curr_std_results] = ClassicBootstrap(Avox,qhat,bvals,N,K);
+results{1} = curr_results;
+std_results{1} = curr_std_results;
+fprintf('done classic\n')
 
-for i=1:N
+[curr_results,curr_std_results] = ParametricBootstrap(model_res,qhat,bvals,N,K,sigma_residuals);
+results{2} = curr_results;
+std_results{2} = curr_std_results;
+fprintf('done parametric\n')
 
-    sample_indices = ceil(rand(1,data_size)*data_size);
-    Avox_sample = model_res + residuals(sample_indices);
-    
-    startx = [3.5e+00 3e-03 2.5e-01 0 0];
+[curr_results,curr_std_results] = ResidualBootstrap(model_res,qhat,bvals,N,K,residuals);
+results{3} = curr_results;
+std_results{3} = curr_std_results;
+fprintf('done residual\n')
 
-   % setup random noise range to fit parameter values
-    S0_range = 5e3;
-    d_range = 10;
-    f_range = 0.5;
-    theta_range = pi;
-    phi_range = pi;
-    noise_range = [S0_range, d_range, f_range, theta_range, phi_range];
-
-    % perform N ball and stick fitting with random perturbations
-    [starting_values,fitted_params,resnorms,~] = RandomBallStickFitting(startx,noise_range,Avox_sample,qhat,bvals,K);
-
-    % store min resnorm
-    [min_resnorm, min_resnorm_index] = min(resnorms);    
-
-    % store params for best fit
-    [S0,diff,f,theta,phi] = GetRealParamsFromOptimParams(fitted_params(min_resnorm_index,:));
-
-    results(i,:) = [S0,diff,f,theta,phi,min_resnorm];
-
-    std_results(i,:) = [std(results(1:i,1)), std(results(1:i,2)), std(results(1:i,3))];
-end
+[curr_results,curr_std_results] = WildBootstrap(model_res,qhat,bvals,N,K,residuals);
+results{4} = curr_results;
+std_results{4} = curr_std_results;
+fprintf('done wild\n')
 
 %% Display Histograms
 format short;
@@ -97,12 +95,12 @@ param_names = {'S0','diff','f'};
 figure('Position',[10 10 1500 300]);
 sgtitle(['Residuals bootstrap results for voxel: [' num2str(selected_i) ', ' num2str(selected_j) ', ' num2str(selected_slice) ']'])
 for i=1:3
-    
+
     sigma = std(results(:,i));
     mu = mean(results(:,i));
     per_low = prctile(results(:,i),2.5);
     per_high = prctile(results(:,i),97.5);
-    
+
 
     subplot(1,3,i)
     histogram(results(:,i),15, 'Normalization', 'probability');
@@ -117,5 +115,33 @@ for i=1:3
     line([mu-2*sigma, mu-2*sigma], [0 1], 'Color', 'b', 'LineWidth', 2);
     line([mu+2*sigma, mu+2*sigma], [0 1], 'Color', 'b', 'LineWidth', 2);
     ylim([0 0.25])
+end
+
+%% error scatter
+param_names = {'S0','diff','f'};
+
+figure('Position',[10 10 1500 300]);
+sgtitle(['Various Bootstrap Errors (voxel: 92,65,72); 2\sigma(blue), 95%(red)'])
+for i=1:3
+    subplot(1,3,i);
+
+    for iter=1:4
+        curr_results = results{iter};
+        sigma = std(curr_results(:,i));
+        mu = mean(curr_results(:,i));
+        per_low = prctile(curr_results(:,i),2.5);
+        per_high = prctile(curr_results(:,i),97.5);
+
+        errorbar(iter,mu,mu-per_low,per_high-mu,'Color','r');
+        hold on;
+        errorbar(iter,mu,2*sigma,2*sigma,'Color','b');
+        hold on;
+        scatter(iter,mu,'k','filled');
+        hold on;
+        set(gca,'xtick',[1:4],'xticklabel',names)
+        xlim([0 5]);        
+    end
+
+    title(param_names{i});
 end
 

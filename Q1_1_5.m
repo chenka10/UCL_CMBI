@@ -90,20 +90,52 @@ title('Residual Error Map')
 thetas = res_map(:,:,4);
 phis= res_map(:,:,5);
 
+size_x = size(thetas,1);
+size_y = size(thetas,2);
+
 dir_vecs_x = (sin(thetas).*cos(phis)).*res_map(:,:,3);
 dir_vecs_y = (sin(thetas).*sin(phis)).*res_map(:,:,3);
 
+centers = [size_x/2 size_y/2; 73 80; 49 96];
+window_sizes = [size_x/2 size_y/2; 12 14; 10 13];
+
 figure;
-subplot(1,3,1)
-quiver(1:145,1:174,(dir_vecs_x)',flipud(dir_vecs_y)','ShowArrowHead','off');
-daspect([1 1 1])
+for i=1:3
 
-subplot(1,3,2)
-quiver(1:145,1:174,(dir_vecs_x)',flipud(dir_vecs_y)','ShowArrowHead','off');
-daspect([1 1 1])
+    range_x = int32((centers(i,1)-window_sizes(i,1)+1):(centers(i,1)+window_sizes(i,1)));
+    range_y = int32((centers(i,2)-window_sizes(i,2)+1):(centers(i,2)+window_sizes(i,2)));
 
-subplot(1,3,3)
-quiver(1:145,1:174,(dir_vecs_x)',flipud(dir_vecs_y)','ShowArrowHead','off');
-daspect([1 1 1])
+    vecs_x = dir_vecs_x(range_x,range_y)*0.6;
+    vecs_y = dir_vecs_y(range_x,range_y)*0.6;
+
+    subplot(1,3,i)
+    quiver(range_x,range_y,(vecs_x)',(vecs_y)','off','ShowArrowHead','off','Color','b');
+    hold on;
+    quiver(range_x,range_y,(-vecs_x)',(-vecs_y)','off','ShowArrowHead','off','Color','b');
+    daspect([1 1 1])
+    xlim([range_x(1) range_x(end)])
+    ylim([range_y(1) range_y(end)])
+    if i==1
+        hold on;
+        rectangle('EdgeColor','g','LineWidth',2,'Position',[centers(2,1)+1-window_sizes(2,1) centers(2,2)+1-window_sizes(2,2) 2*window_sizes(2,1) 2*window_sizes(2,2)])
+        rectangle('EdgeColor','r','LineWidth',2,'Position',[centers(3,1)+1-window_sizes(3,1) centers(3,2)+1-window_sizes(3,2) 2*window_sizes(3,1) 2*window_sizes(3,2)])
+    end
+    if i ==2
+        hold on;
+        rectangle('EdgeColor','g','LineWidth',2,'Position',[centers(2,1)+1-window_sizes(2,1) centers(2,2)+1-window_sizes(2,2) 2*window_sizes(2,1)-1 2*window_sizes(2,2)-1])
+    end
+    if i ==3
+        hold on;
+        rectangle('EdgeColor','r','LineWidth',2,'Position',[centers(3,1)+1-window_sizes(3,1) centers(3,2)+1-window_sizes(3,2) 2*window_sizes(3,1)-1 2*window_sizes(3,2)-1])
+    end
+end
+
+% subplot(1,3,2)
+% quiver(1:145,1:174,(dir_vecs_x)',flipud(dir_vecs_y)','ShowArrowHead','off');
+% daspect([1 1 1])
+% 
+% subplot(1,3,3)
+% quiver(1:145,1:174,(dir_vecs_x)',flipud(dir_vecs_y)','ShowArrowHead','off');
+% daspect([1 1 1])
 
 
