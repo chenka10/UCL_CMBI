@@ -1,14 +1,26 @@
-function [real_params, optim_params, success_rate, min_resnorm] = FitBallAndStick(Avox,qhat,bvals)
+function [real_params, optim_params, success_rate, min_resnorm] = FitBallAndStick(Avox,qhat,bvals,dti_results,num_tries)
 
 % number of perturbations
 N = 20;
 
 startx = [3.5e+00 3e-03 2.5e-01 0 0];
 
+if nargin>=4
+    S0_DTI = dti_results(1);
+    D_DTI = dti_results(2);
+    F_DTI = dti_results(3);
+    startx = [S0_DTI D_DTI F_DTI 0 0];
+end
+
+if nargin>=5
+    N = num_tries;
+end
+
+
 % setup random noise range to fit parameter values
-S0_range = 10;
-d_range = 10;
-f_range = 0.5;
+S0_range = 100;
+d_range = 1;
+f_range = 1;
 theta_range = pi;
 phi_range = pi;
 noise_range = [S0_range, d_range, f_range, theta_range, phi_range];

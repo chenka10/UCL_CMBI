@@ -120,7 +120,7 @@ end
 %% plot directional uncertainty
 
 centers = [size_x/2 size_y/2; 73 80; 33 96];
-window_sizes = [size_x/2 size_y/2; 10 12; 10 12];
+window_sizes = [size_x/2 size_y/2; 12 14; 10 13];
 
 figure('Position',[100 100 1300 500]);
 sgtitle('Directional Uncertainty')

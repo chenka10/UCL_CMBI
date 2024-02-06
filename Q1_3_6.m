@@ -1,5 +1,15 @@
 clear all; clc;
 
+%%
+
+addpath("BallAndStick\");
+addpath("DTI_optim\");
+addpath("ZeppelinAndStick\");
+addpath("ZeppelinAndStickTortuosity\");
+addpath("ZeppelinStickDot\");
+addpath("ZeppelinTwoSticks\");
+addpath("TensorStickDot\");
+
 %% load data
 load('data');
 dwis=double(dwis);
@@ -11,7 +21,7 @@ bvals = 1000*sum(qhat.*qhat);
 
 
 % downsample dwis
-downsample_step = 2;
+downsample_step = 1;
 dwis = dwis(:,1:downsample_step:size(dwis,2),1:downsample_step:size(dwis,3),:);
 
 %% compute maps
@@ -23,26 +33,47 @@ Ns = [6 7 6];
 fit_funcs = {@FitBallAndStick,@FitZeppelinAndStick,@FitZeppelinAndStickTortuosity};
 M = numel(fit_funcs);
 
+res_params = {zeros(size(dwis,2),size(dwis,3),7),...
+    zeros(size(dwis,2),size(dwis,3),8),...
+    zeros(size(dwis,2),size(dwis,3),7)};
+
 res_map = zeros(size(dwis,2),size(dwis,3));
 res_map_values = zeros(size(dwis,2),size(dwis,3),M);
 selected_slice = 72;
 
-for i=1:size(dwis,2)
-    for j=1:size(dwis,3)
+Y = GetDesignMatrix(qhat,bvals);
+Y_pinv = pinv(Y);
+
+num_tries = 15;
+
+for j=1:size(dwis,3)
+    for i=1:size(dwis,2)    
         tic
         Avox = dwis(:,i,j,selected_slice);
-        if max(Avox)<100
+        if max(Avox)<2000
             continue
         end
+
+        x = Y_pinv*log(Avox);
+
+        D_DTI = [[x(2) x(3) x(4)]; [x(3) x(5) x(6)]; [x(4) x(6) x(7)]];
+        S0_DTI = exp(x(1));
+
+        R = D_DTI/trace(D_DTI);
+        FA_DTI = sqrt(0.5*(3-1/trace(R^2)));
+
+        dti_results = [S0_DTI,trace(D_DTI)/3, FA_DTI];
 
         best_AIC = 99999;        
 
         for m=1:M
             fit_func = fit_funcs{m};
-            [real_params, optim_params, success_rate, min_resnorm] = fit_func(Avox,qhat,bvals);
+            [real_params, optim_params, success_rate, min_resnorm] = fit_func(Avox,qhat,bvals,dti_results,num_tries);
 
             K = numel(Avox);
             N = Ns(m);
+
+            fprintf('m=%d, success=%s\n',m,num2str(success_rate,4));
 
             AIC = ComputeAIC(N,K,min_resnorm) + (2*N*(N+1))/(K-N-1);
 
@@ -51,7 +82,9 @@ for i=1:size(dwis,2)
             if AIC<best_AIC
                 best_AIC = AIC;
                 res_map(i,j) = m;
-            end            
+            end
+
+            res_params{m}(i,j,:) = [real_params success_rate min_resnorm];
         end
 
         toc
