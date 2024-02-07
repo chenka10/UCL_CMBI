@@ -18,9 +18,9 @@ end
 
 % setup random noise range to fit parameter values
 S0_range = 100;
-lam1_range = 1;
-lam2_range = 1;
-f_range = 1;
+lam1_range = 10;
+lam2_range = 10;
+f_range = 10;
 theta_range = pi;
 phi_range = pi;
 noise_range = [S0_range, lam1_range, lam2_range, f_range, theta_range, phi_range];

@@ -44,7 +44,7 @@ selected_slice = 72;
 Y = GetDesignMatrix(qhat,bvals);
 Y_pinv = pinv(Y);
 
-num_tries = 15;
+num_tries = [20 15 15];
 
 for j=1:size(dwis,3)
     for i=1:size(dwis,2)    
@@ -68,7 +68,7 @@ for j=1:size(dwis,3)
 
         for m=1:M
             fit_func = fit_funcs{m};
-            [real_params, optim_params, success_rate, min_resnorm] = fit_func(Avox,qhat,bvals,dti_results,num_tries);
+            [real_params, optim_params, success_rate, min_resnorm] = fit_func(Avox,qhat,bvals,dti_results,num_tries(m));
 
             K = numel(Avox);
             N = Ns(m);
@@ -96,52 +96,38 @@ end
 save('results_30_new.mat','res_map');
 
 %% Displaying maps
+selected_slice=72;
+res_params_map = res_params{3};
 figure('Position',[100 100 550 500]);
 sgtitle(['Slice: ' num2str(selected_slice)])
 subplot(2,2,1)
-imshow(flipud(res_map(:,:,1)'), []);
+imshow(flipud(res_params_map(:,:,1)'), []);
 xticks([])
 yticks([])
 colorbar()
 title('S0 Map')
 subplot(2,2,2)
-imshow(flipud(res_map(:,:,2)'), [0 0.005]);
+imshow(flipud(res_params_map(:,:,2)'), [0 0.005]);
 xticks([])
 yticks([])
 colorbar()
 title('diff Map')
 subplot(2,2,3)
-imshow(flipud(res_map(:,:,3)'), []);
+imshow(flipud(res_params_map(:,:,3)'), []);
 xticks([])
 yticks([])
 colorbar()
 title('f Map')
 subplot(2,2,4)
-imshow(flipud(res_map(:,:,6)'), [0 2e7]);
+imshow(flipud(res_params_map(:,:,6)'), []);
 xticks([])
 yticks([])
 colorbar()
 title('Residual Error Map')
 
-%% Displaying diraction map
-
-thetas = res_map(:,:,4);
-phis= res_map(:,:,5);
-
-dir_vecs_x = (sin(thetas).*cos(phis)).*res_map(:,:,3);
-dir_vecs_y = (sin(thetas).*sin(phis)).*res_map(:,:,3);
+%% display model selection
 
 figure;
-subplot(1,3,1)
-quiver(1:145,1:174,(dir_vecs_x)',flipud(dir_vecs_y)','ShowArrowHead','off');
-daspect([1 1 1])
-
-subplot(1,3,2)
-quiver(1:145,1:174,(dir_vecs_x)',flipud(dir_vecs_y)','ShowArrowHead','off');
-daspect([1 1 1])
-
-subplot(1,3,3)
-quiver(1:145,1:174,(dir_vecs_x)',flipud(dir_vecs_y)','ShowArrowHead','off');
-daspect([1 1 1])
+imshow(label2rgb(res_map));
 
 
