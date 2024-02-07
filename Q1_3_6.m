@@ -145,7 +145,7 @@ imshow(selected_model_map,[]);
 colormap(ax1,"jet");
 xticks([])
 yticks([])
-title({'Selected Model'})
+title({'1. Selected Model'})
 subtitle('1: BallStick, 2: ZeppelinStick, 3: ZeppelinStock (Tortuosity)')
 colorbar()
 
@@ -153,7 +153,7 @@ subplot(2,2,2)
 imshow(f_map, []);
 xticks([])
 yticks([])
-title('f coefficient')
+title('2. f coefficient of ZeppelinStick(Tortuosity)')
 colorbar()
 
 
@@ -171,7 +171,7 @@ mod_spring = mod_spring.*repmat(abs(mod_spring_range),3,1)'*2;
 % mod_spring(mod_spring_range>0.1,:) = 0;
 
 colormap(h_sp,mod_spring)
-title({'Difference: AIC(BallStick) - AIC(ZeppelinSitkc(Tortuosity))'})
+title({'3. Difference: AIC(BallStick) - AIC(ZeppelinSitkc(Tortuosity))'})
 subtitle('Lower -> BallStick was better')
 
 subplot(2,2,4)
@@ -182,7 +182,7 @@ n = sqrt(sum((err_img-err_img(1,1,:)).^2,3));
 h_err.AlphaData = abs(norm_err_img - norm_err_img(1,1,1))*5;
 xticks([])
 yticks([])
-title('Difference on f')
+title('4. Map 3 Overlayed on Map 2')
 
 
 
