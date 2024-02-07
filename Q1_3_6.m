@@ -97,7 +97,7 @@ save('results_30_new.mat','res_map');
 
 %% Displaying maps
 selected_slice=72;
-res_params_map = res_params{3};
+res_params_map = res_params{1};
 figure('Position',[100 100 550 500]);
 sgtitle(['Slice: ' num2str(selected_slice)])
 subplot(2,2,1)
@@ -119,7 +119,7 @@ yticks([])
 colorbar()
 title('f Map')
 subplot(2,2,4)
-imshow(flipud(res_params_map(:,:,6)'), []);
+imshow(flipud(res_params_map(:,:,end)'), []);
 xticks([])
 yticks([])
 colorbar()
@@ -127,7 +127,99 @@ title('Residual Error Map')
 
 %% display model selection
 
+err_img = (flipud(res_map_values(:,:,1)') - flipud(res_map_values(:,:,3)'));
+err_img = err_img - err_img(1,1,1);
+norm_err_img = NormalizeImg(err_img);
+norm_err_img = norm_err_img - norm_err_img(1,1,1);
+norm_err_img(norm_err_img>0.1) = 0.1;
+norm_err_img(norm_err_img<-0.1) = -0.1;
+norm_err_img = NormalizeImg(norm_err_img);
+
+selected_model_map = (flipud(res_map'));
+
+f_map = flipud(res_params{3}(:,:,3)');
+
+figure('Position',[100 100 800 700]);
+ax1=subplot(2,2,1);
+imshow(selected_model_map,[]);
+colormap(ax1,"jet");
+xticks([])
+yticks([])
+title({'Selected Model'})
+subtitle('1: BallStick, 2: ZeppelinStick, 3: ZeppelinStock (Tortuosity)')
+colorbar()
+
+subplot(2,2,2)
+imshow(f_map, []);
+xticks([])
+yticks([])
+title('f coefficient')
+colorbar()
+
+
+h_sp=subplot(2,2,3);
+err_img_mean = nanmean(err_img,'all');
+range = max(err_img,[],'all') - min(err_img,[],'all');
+h = imshow(err_img,[err_img_mean-range*0.1 err_img_mean+range*0.1]);
+xticks([])
+yticks([])
+colorbar()
+
+mod_spring_range=(0:(1/255):1) - 0.5;
+mod_spring = spring;
+mod_spring = mod_spring.*repmat(abs(mod_spring_range),3,1)'*2;
+% mod_spring(mod_spring_range>0.1,:) = 0;
+
+colormap(h_sp,mod_spring)
+title({'Difference: AIC(BallStick) - AIC(ZeppelinSitkc(Tortuosity))'})
+subtitle('Lower -> BallStick was better')
+
+subplot(2,2,4)
+h_f = imshow(f_map,[]);
+hold on;
+h_err = image(grayscaleToColor(norm_err_img,spring));
+n = sqrt(sum((err_img-err_img(1,1,:)).^2,3));
+h_err.AlphaData = abs(norm_err_img - norm_err_img(1,1,1))*5;
+xticks([])
+yticks([])
+title('Difference on f')
+
+
+
+%%
+best_res_index_map = zeros(size(res_map));
+
+for i=1:size(res_map,1)
+    for j=1:size(res_map,2)
+        curr_min = inf;
+        for m=1:3
+            curr_model_resnorm = res_params{m}(i,j,end);
+
+            if curr_model_resnorm<curr_min
+                curr_min = curr_model_resnorm;
+                best_res_index_map(i,j)=m;
+            end
+        end        
+    end
+end
+
+%% display model selection
+
 figure;
-imshow(label2rgb(res_map));
+imshow((flipud(best_res_index_map')),[]);
 
+function img = NormalizeImg(input)
+input = input - min(input,[],'all');
+img = input./max(input,[],'all');
+end
 
+function colorImage = grayscaleToColor(grayImage, colormapName)
+    % Convert grayscale image to indexed image
+    indexedImage = gray2ind(grayImage, 256);
+    
+    % Apply colormap to indexed image
+    rgbImage = ind2rgb(indexedImage, colormapName);
+    
+    % Convert to uint8 data type
+    colorImage = uint8(rgbImage * 255);
+end
