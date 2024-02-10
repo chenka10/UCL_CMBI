@@ -3,7 +3,7 @@ function [real_params, optim_params, success_rate, min_resnorm] = FitBallAndStic
 % number of perturbations
 N = 500;
 
-startx = [3.5e+00 3e-03 2.5e-01 0 0 0];
+startx = [3.5e+00 3e-03 2.5e-01 0 0];
 
 if nargin>=5
     startx(1:5) = start_params;
@@ -20,8 +20,7 @@ d_range = 0.01;
 f_range = 0.5;
 theta_range = pi;
 phi_range = pi;
-T2_range = 2;
-noise_range = [S0_range, d_range, f_range, theta_range, phi_range, T2_range];
+noise_range = [S0_range, d_range, f_range, theta_range, phi_range];
 
 % perform N ball and stick fitting with random perturbations
 [~,fitted_params,resnorms,~] = RandomBallStickT2Fitting(startx,noise_range,Avox,qhat,bvals,TE,N);

@@ -9,7 +9,7 @@ addpath("ZeppelinTwoSticks\");
 addpath("TensorStickDot\");
 
 %% load ISBI2015 data
-selected_voxel = 4;
+selected_voxel = 1;
 [Avox,qhat,TE,bvals] = LoadISBI2015Data(selected_voxel);
 
 %% setting names and functions for each model
@@ -112,6 +112,32 @@ for n=1:N
     fprintf('%s: mean cross correlation results = %d\n',names{n},cross_corr_results(n));
 end
 
+%% Monte Carlo Cross validate models
+
+% num folds
+F = 6;
+
+cross_corr_results = zeros(N,F);
+
+shuffled_indexes = randperm(numel(Avox));
+Avox_shuffled = Avox(shuffled_indexes);
+qhat_shuffled = qhat(:,shuffled_indexes);
+bvals_shuffled = bvals(shuffled_indexes);
+
+for i=1:N
+    fit_func = fit_funcs{i};
+    compute_func = compute_funcs{i};
+    res = CrossValidateModelMonteCarlo(fit_func,compute_func,Avox_shuffled,qhat_shuffled,bvals_shuffled,F);
+    cross_corr_results(i,:) = res;
+end
+
+%% print cross validation results
+
+for n=1:N
+    WriteLineToCSV({cross_corr_results(n,1),cross_corr_results(n,2),cross_corr_results(n,3),cross_corr_results(n,4),cross_corr_results(n,5),cross_corr_results(n,6),mean(cross_corr_results(n,:))},'cross_corr_monte_carlo_fold_6.csv');
+    fprintf('%s: mean cross correlation results = %d\n',names{n},cross_corr_results(n));
+end
+
 
 %%
 
@@ -127,6 +153,27 @@ for i=1:fold_num
     train_end = train_start + split_size;
     test_indexes = logical((data_range>train_start).*(data_range<train_end));
     train_indexes = ~test_indexes;
+    [real_params, ~,~,~] = fit_func(Avox(train_indexes),qhat(:,train_indexes),bvals(train_indexes));
+
+    test_res = compute_func(real_params,bvals(test_indexes),qhat(:,test_indexes))';
+
+    results(i) = sum((test_res - Avox(test_indexes)).^2);
+    fprintf('cross-validation, iter=%d, SSD=%d\n',i,results(i));
+end
+end
+
+function results = CrossValidateModelMonteCarlo(fit_func,compute_func,Avox,qhat,bvals,fold_num)
+
+results = zeros(fold_num,1);
+
+data_size = numel(Avox);
+% data_range = 1:data_size;
+split_size = floor(data_size/fold_num);
+for i=1:fold_num    
+    perm = randperm(numel(Avox));
+    
+    test_indexes = perm(1:split_size);
+    train_indexes = perm(split_size+1:end);
     [real_params, ~,~,~] = fit_func(Avox(train_indexes),qhat(:,train_indexes),bvals(train_indexes));
 
     test_res = compute_func(real_params,bvals(test_indexes),qhat(:,test_indexes))';

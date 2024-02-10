@@ -1,7 +1,7 @@
 function [starting_values,fitted_params, resnorms, hessians] = RandomBallStickT2Fitting(startx_orig,noise_range,Avox,qhat,bvals,TE,N)
 
-starting_values = zeros(N,6);
-fitted_params = zeros(N,6);
+starting_values = zeros(N,5);
+fitted_params = zeros(N,5);
 resnorms = zeros(N,1);
 hessians = cell(N,1);
 
@@ -10,14 +10,14 @@ for i=1:N
         startx = startx_orig;
 
         % generate randomness
-        noise = randn(1,6).*noise_range;
+        noise = randn(1,5).*noise_range;
         startx = startx + noise;
 
         % clip perturbed params
         startx(1) = abs(startx(1));
         startx(2) = abs(startx(2));
         startx(3) = mod(startx(3),1);    
-        startx(6) = mod(startx(6),1);
+        % startx(6) = mod(startx(6),1);
 
         % save start values
         starting_values(i,:) = startx;
