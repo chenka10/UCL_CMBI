@@ -5,10 +5,13 @@ clc; clear all; close all;
 addpath("BallAndStickT2\")
 addpath("BallAndStick\")
 addpath("experimentDesign\")
+addpath("Bootstraps\")
 
 %% load ISBI2015 data
+T2 = 0.07; % [s]
 selected_voxel = 1;
 [Avox,qhat,TE,bvals] = LoadISBI2015Data(selected_voxel);
+Avox_TE = Avox.*exp(-TE'/0.07);
 
 %% compute shells
 shells_idencies = zeros(36,121);
@@ -64,6 +67,7 @@ end
 
 shells_idencies = shells_idencies_couples;
 
+
 %% Compute Fisher matrix for Ball and Stick on all data
 
 params = [1.009865516767256   0.001432055891641   0.574928310559141  1.59686173476731723846   6.200322564900709];
@@ -72,7 +76,6 @@ params_norm = params(1:3)'*params(1:3);
 F = ComputeFisherMatrix(params,bvals,qhat).*params_norm;
 
 %% Compute Fisher matrix for Ball and Stick on all data (with T2)
-T2 = 0.07; % [s]
 params = [1.009865516767256   0.001432055891641   0.574928310559141  1.59686173476731723846   6.200322564900709 T2];
 params_norm = [params(1:3) params(6)]'*[params(1:3) params(6)];
 
@@ -92,7 +95,8 @@ params_norm = params(1:3)'*params(1:3);
 [T_optim_val,T_optim_val_i] = max(T_optim);
 
 %% Find optimal shell (With T2)
-params = [1.009865516767256   0.001432055891641   0.574928310559141  -1.544730918822476   6.200322564900709 0.07];
+params = [1.009865516767256   0.001432055891641   0.574928310559141  -1.544730918822476   6.200322564900709 T2];
+
 params_norm = [params(1:3) params(6)]'*[params(1:3) params(6)];
 
 [A_optim,D_optim,E_optim,T_optim,eigenvalues] = FindOptimShell(shells_idencies, params,params_norm,@ComputeFisherMatrixWithT2,bvals,qhat,TE);
@@ -101,6 +105,42 @@ params_norm = [params(1:3) params(6)]'*[params(1:3) params(6)];
 [D_optim_val,D_optim_val_i] = min(D_optim);
 [E_optim_val,E_optim_val_i] = max(E_optim);
 [T_optim_val,T_optim_val_i] = max(T_optim);
+
+%% Bootstrap on shells
+params = [1.009865516767256   0.001432055891641   0.574928310559141  -1.544730918822476   6.200322564900709 T2];
+model_res = ComputeBallStickT2(params, bvals, qhat,TE);
+residuals = Avox.*(exp(-TE'/T2)) - model_res';
+
+N_bootstrap_iterations = 150;
+N_random_perturbations = 30;
+
+num_shells = size(shells_idencies,1);
+
+results = cell(num_shells,1);
+std_results = cell(num_shells,1);
+
+% estimate sigma residuals
+for i=1:num_shells
+    tic
+    curr_shell = shells_idencies(i,:);
+    curr_Avox = Avox(curr_shell);
+    curr_bvals = bvals(curr_shell);
+    curr_qhat = qhat(:,curr_shell);
+    curr_TE = TE(curr_shell);
+
+    curr_residuals = residuals(curr_shell);
+    curr_model_res = model_res(curr_shell)';
+
+    K_samples = numel(curr_Avox);
+    N_params = 5;
+    sigma_residuals = sqrt(sum(curr_residuals.^2)/(K_samples-N_params));
+
+    [curr_results,curr_std_results] = ParametricBootstrapWithT2(curr_model_res,curr_qhat,curr_bvals,curr_TE,N_bootstrap_iterations,N_random_perturbations,sigma_residuals,params(1:5));
+    results{i} = curr_results;
+    std_results{i} = curr_std_results;
+    toc
+    fprintf('done shell %d\n',i)
+end
 
 %% plot optimality values
 
@@ -131,6 +171,41 @@ plot(eigenvalues(:,i));
 [~,optim_val] = max(eigenvalues(:,i));
 xlabel('shell number')
 title({['eigenvalue num ' num2str(i)],['max: ' num2str(optim_val)]})
+end
+
+%% error scatter for bootstrap
+param_names = {'S0','diff','f'};
+
+figure('Position',[10 10 1500 300]);
+sgtitle(['Various Bootstrap Errors (voxel: 92,65,72); 2\sigma(blue), 95%(red)'])
+for i=1:3
+    subplot(1,3,i);
+
+    min_sigma = Inf;
+    min_sigma_i = -1;
+
+    for iter=1:num_shells
+        curr_results = results{iter};
+        sigma = std(curr_results(:,i));
+        mu = mean(curr_results(:,i));
+        per_low = prctile(curr_results(:,i),2.5);
+        per_high = prctile(curr_results(:,i),97.5);
+
+        if min_sigma>sigma
+            min_sigma = sigma;
+            min_sigma_i = iter;
+        end
+
+        errorbar(iter,mu,mu-per_low,per_high-mu,'Color','r');
+        hold on;
+        errorbar(iter,mu,2*sigma,2*sigma,'Color','b');
+        hold on;
+        scatter(iter,mu,'k','filled');
+        hold on;      
+        xlim([0 num_shells+1])
+    end
+
+    title({param_names{i},['min index: ' num2str(min_sigma_i)]});
 end
 
 
