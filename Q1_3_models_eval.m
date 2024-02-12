@@ -89,7 +89,7 @@ end
 %% Cross validate models
 
 % num folds
-F = 6;
+F = 100;
 
 cross_corr_results = zeros(N,F);
 
@@ -105,19 +105,22 @@ for i=1:N
     cross_corr_results(i,:) = res;
 end
 
-%% print cross validation results
-
 for n=1:N
-    WriteLineToCSV({cross_corr_results(n,1),cross_corr_results(n,2),cross_corr_results(n,3),cross_corr_results(n,4),cross_corr_results(n,5),cross_corr_results(n,6),mean(cross_corr_results(n,:))},'cross_corr_k_fold_6.csv');
+    line = cell(F+1,1);
+    for f=1:F
+        line{f} = cross_corr_results(n,f);
+    end
+    line{end} = mean(cross_corr_results(n,:))*F;
+    WriteLineToCSV(line,['cross_corr_k_fold_' num2str(F) '.csv']);
     fprintf('%s: mean cross correlation results = %d\n',names{n},cross_corr_results(n));
 end
 
 %% Monte Carlo Cross validate models
 
 % num folds
-F = 6;
+iterations_num = 36;
 
-cross_corr_results = zeros(N,F);
+cross_corr_results = zeros(N,iterations_num);
 
 shuffled_indexes = randperm(numel(Avox));
 Avox_shuffled = Avox(shuffled_indexes);
@@ -127,14 +130,19 @@ bvals_shuffled = bvals(shuffled_indexes);
 for i=1:N
     fit_func = fit_funcs{i};
     compute_func = compute_funcs{i};
-    res = CrossValidateModelMonteCarlo(fit_func,compute_func,Avox_shuffled,qhat_shuffled,bvals_shuffled,F);
+    res = CrossValidateModelMonteCarlo(fit_func,compute_func,Avox_shuffled,qhat_shuffled,bvals_shuffled,iterations_num);
     cross_corr_results(i,:) = res;
 end
 
-%% print cross validation results
+%%
 
 for n=1:N
-    WriteLineToCSV({cross_corr_results(n,1),cross_corr_results(n,2),cross_corr_results(n,3),cross_corr_results(n,4),cross_corr_results(n,5),cross_corr_results(n,6),mean(cross_corr_results(n,:))},'cross_corr_monte_carlo_fold_6.csv');
+    line = cell(11,1);
+    for f=1:iterations_num
+        line{f} = cross_corr_results(n,f);
+    end
+    line{end} = mean(cross_corr_results(n,:))*10;
+    WriteLineToCSV(line,['cross_corr__monte_carlo_num_iterations_' num2str(iterations_num) '.csv']);
     fprintf('%s: mean cross correlation results = %d\n',names{n},cross_corr_results(n));
 end
 
@@ -168,7 +176,7 @@ results = zeros(fold_num,1);
 
 data_size = numel(Avox);
 % data_range = 1:data_size;
-split_size = floor(data_size/fold_num);
+split_size = floor(data_size/10);
 for i=1:fold_num    
     perm = randperm(numel(Avox));
     

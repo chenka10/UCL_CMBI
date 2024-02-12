@@ -111,8 +111,8 @@ params = [1.009865516767256   0.001432055891641   0.574928310559141  -1.54473091
 model_res = ComputeBallStickT2(params, bvals, qhat,TE);
 residuals = Avox.*(exp(-TE'/T2)) - model_res';
 
-N_bootstrap_iterations = 150;
-N_random_perturbations = 30;
+N_bootstrap_iterations = 200;
+N_random_perturbations = 50;
 
 num_shells = size(shells_idencies,1);
 
@@ -148,19 +148,19 @@ figure('Position',[100 100 1000 700]);
 subplot(2,2,1)
 plot(A_optim);
 xlabel('shell number')
-title({'trace(F^{-1}) - minimize for A-optimality',['min: ' num2str(A_optim_val) ',min_i: ' num2str(A_optim_val_i)]});
+title({'trace(F^{-1}) - minimize for A-optimality',['min: ' num2str(A_optim_val) ',min index: ' num2str(A_optim_val_i)]});
 subplot(2,2,2)
 plot(D_optim);
 xlabel('shell number')
-title({'det(F^{-1}) - minimize for D-optimality',['min: ' num2str(D_optim_val) ',min_i: ' num2str(D_optim_val_i)]});
+title({'det(F^{-1}) - minimize for D-optimality',['min: ' num2str(D_optim_val) ',min index: ' num2str(D_optim_val_i)]});
 subplot(2,2,3)
 plot(E_optim);
 xlabel('shell number')
-title({'min eigenvalue of F - maximize for E-optimality',['max: ' num2str(E_optim_val) ',max_i: ' num2str(E_optim_val_i)]});
+title({'min eigenvalue of F - maximize for E-optimality',['max: ' num2str(E_optim_val) ',max index: ' num2str(E_optim_val_i)]});
 subplot(2,2,4)
 plot(T_optim);
 xlabel('shell number')
-title({'trace(F) - maximiaze for T-optimality',['max: ' num2str(T_optim_val) ',max_i: ' num2str(T_optim_val_i)]});
+title({'trace(F) - maximiaze for T-optimality',['max: ' num2str(T_optim_val) ',max index: ' num2str(T_optim_val_i)]});
 
 %% plot eigenvalues progression
 
@@ -177,7 +177,7 @@ end
 param_names = {'S0','diff','f'};
 
 figure('Position',[10 10 1500 300]);
-sgtitle(['Various Bootstrap Errors (voxel: 92,65,72); 2\sigma(blue), 95%(red)'])
+sgtitle(['Various Bootstrap Errors (voxel: 1); 2\sigma(blue), 95%(red)'])
 for i=1:3
     subplot(1,3,i);
 
@@ -205,7 +205,7 @@ for i=1:3
         xlim([0 num_shells+1])
     end
 
-    title({param_names{i},['min index: ' num2str(min_sigma_i)]});
+    title({param_names{i},['shell with minimal \sigma: ' num2str(min_sigma_i)]});
 end
 
 
