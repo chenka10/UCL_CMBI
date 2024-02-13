@@ -86,7 +86,7 @@ for n=1:N
     title(['[' names{i} '] SSD = ' num2str(resnorms(i),4) ', AIC = ' num2str(AIC_all(i),8)])
 end
 
-%% Cross validate models
+%% Cross validate models - K-fold
 
 % num folds
 F = 100;
@@ -119,6 +119,7 @@ end
 
 % num folds
 iterations_num = 36;
+split_ratio = 1/6;
 
 cross_corr_results = zeros(N,iterations_num);
 
@@ -130,24 +131,23 @@ bvals_shuffled = bvals(shuffled_indexes);
 for i=1:N
     fit_func = fit_funcs{i};
     compute_func = compute_funcs{i};
-    res = CrossValidateModelMonteCarlo(fit_func,compute_func,Avox_shuffled,qhat_shuffled,bvals_shuffled,iterations_num);
+    res = CrossValidateModelMonteCarlo(fit_func,compute_func,Avox_shuffled,qhat_shuffled,bvals_shuffled,iterations_num,split_ratio);
     cross_corr_results(i,:) = res;
 end
 
-%%
 
 for n=1:N
-    line = cell(11,1);
+    line = cell(iterations_num+1,1);
     for f=1:iterations_num
         line{f} = cross_corr_results(n,f);
     end
-    line{end} = mean(cross_corr_results(n,:))*10;
+    line{end} = mean(cross_corr_results(n,:))/split_ratio;
     WriteLineToCSV(line,['cross_corr__monte_carlo_num_iterations_' num2str(iterations_num) '.csv']);
     fprintf('%s: mean cross correlation results = %d\n',names{n},cross_corr_results(n));
 end
 
 
-%%
+%% functions
 
 function results = CrossValidateModel(fit_func,compute_func,Avox,qhat,bvals,fold_num)
 
@@ -170,14 +170,13 @@ for i=1:fold_num
 end
 end
 
-function results = CrossValidateModelMonteCarlo(fit_func,compute_func,Avox,qhat,bvals,fold_num)
+function results = CrossValidateModelMonteCarlo(fit_func,compute_func,Avox,qhat,bvals,iterations_num, split_ratio)
 
-results = zeros(fold_num,1);
+results = zeros(iterations_num,1);
 
 data_size = numel(Avox);
-% data_range = 1:data_size;
-split_size = floor(data_size/10);
-for i=1:fold_num    
+split_size = floor(data_size*split_ratio);
+for i=1:iterations_num    
     perm = randperm(numel(Avox));
     
     test_indexes = perm(1:split_size);
