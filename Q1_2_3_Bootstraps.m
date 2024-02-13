@@ -51,7 +51,7 @@ N = 5;
 sigma_residuals = sqrt(sum(residuals.^2)/(K-N));
 
 
-%% perform basic ball and stick fitting
+%% Compute bootstraps
 
 % number of bootstrap iterations
 N = 300;
